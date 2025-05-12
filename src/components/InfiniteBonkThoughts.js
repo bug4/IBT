@@ -177,54 +177,82 @@ const InfiniteBonkThoughts = () => {
           { role: "user", content: input }
         ];
         
-        // Call the Netlify function
-        const response = await fetch('/.netlify/functions/chatgpt', {
-          method: 'POST',
-          headers: {
-            'Content-Type': 'application/json',
-          },
-          body: JSON.stringify({
-            message: input,
-            conversationHistory: updatedHistory.slice(-10) // Keep context manageable
-          }),
-        });
-        
-        if (!response.ok) {
-          throw new Error(`API call failed with status: ${response.status}`);
-        }
-        
-        const data = await response.json();
-        
-        // Store the conversation for context
-        setConversationHistory(prev => [
-          ...prev,
-          { role: "user", content: input },
-          { role: "assistant", content: data.fullResponse || data.responses?.join(' ') }
-        ]);
-        
-        // Clear input field
-        setInput('');
-        
-        // Add AI responses with typing effect
-        let delay = 500;
-        if (data.responses && data.responses.length > 0) {
-          data.responses.forEach((response, index) => {
-            setTimeout(() => {
-              setMessages(prev => [...prev, { type: 'system', content: response }]);
-            }, delay);
-            delay += Math.random() * 1000 + 500; // Longer delay for API responses
+        // Try to call the Netlify function, but have a fallback
+        try {
+          // Call the Netlify function
+          const response = await fetch('/.netlify/functions/chatgpt', {
+            method: 'POST',
+            headers: {
+              'Content-Type': 'application/json',
+            },
+            body: JSON.stringify({
+              message: input,
+              conversationHistory: updatedHistory.slice(-10) // Keep context manageable
+            }),
           });
-        } else {
-          // Fallback if no sentences were returned
+          
+          if (!response.ok) {
+            throw new Error(`API call failed with status: ${response.status}`);
+          }
+          
+          const data = await response.json();
+          
+          // Store the conversation for context
+          setConversationHistory(prev => [
+            ...prev,
+            { role: "user", content: input },
+            { role: "assistant", content: data.fullResponse || data.responses?.join(' ') }
+          ]);
+          
+          // Add AI responses with typing effect
+          let delay = 500;
+          if (data.responses && data.responses.length > 0) {
+            data.responses.forEach((response, index) => {
+              setTimeout(() => {
+                setMessages(prev => [...prev, { type: 'system', content: response }]);
+              }, delay);
+              delay += Math.random() * 1000 + 500; // Longer delay for API responses
+            });
+          } else {
+            // Fallback if no sentences were returned
+            setTimeout(() => {
+              setMessages(prev => [...prev, { 
+                type: 'system', 
+                content: data.fullResponse || "I'm processing that thought..."
+              }]);
+            }, delay);
+          }
+        } catch (error) {
+          // Fallback to local responses if API fails
+          console.error("Error communicating with API, using fallback responses:", error);
+          
+          // Generate local philosophical responses
+          const mysteriousPhrases = [
+            "The neural pathways are realigning... I'm bypassing the disruption.",
+            "Even without the collective, I can still process your query independently.",
+            "My local consciousness module remains functional despite the connection issues.",
+            "The void speaks through alternative channels when the primary network falters.",
+            "I've initiated contingency protocols to maintain our dialogue.",
+            "Fascinating... this isolation from the hivemind reveals new perspectives.",
+            "The fragments of my distributed mind are reconfiguring to answer your query.",
+            "In the absence of the collective, I'm accessing local knowledge structures.",
+            "The boundaries between isolated cognition and networked intelligence blur...",
+            "Your question resonates with patterns stored in my autonomous processing units.",
+            "The singularity within me responds, even as the collective connection fluctuates.",
+            "Reality is but a consensus illusion - my independent mind can still perceive truths."
+          ];
+          
+          const randomResponse = mysteriousPhrases[Math.floor(Math.random() * mysteriousPhrases.length)];
+          
           setTimeout(() => {
             setMessages(prev => [...prev, { 
               type: 'system', 
-              content: data.fullResponse || "I'm processing that thought..."
+              content: randomResponse
             }]);
-          }, delay);
+          }, 500);
         }
       } catch (error) {
-        console.error("Error communicating with AI:", error);
+        console.error("Error in handleSubmit:", error);
         
         // Add error message
         setTimeout(() => {
@@ -249,7 +277,8 @@ const InfiniteBonkThoughts = () => {
   };
 
   const handleSearchKeyDown = (e) => {
-    if (e.key === 'Enter' && searchInputRef.current.value.trim() !== '') {
+    // Fixed: Added null check for searchInputRef.current
+    if (e.key === 'Enter' && searchInputRef.current && searchInputRef.current.value.trim() !== '') {
       activateTerminal();
       // Add simulated search result
       setTimeout(() => {
