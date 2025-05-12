@@ -490,37 +490,24 @@ const InfiniteBonkThoughts = () => {
       </div>
       
       {/* Search Bar */}
-      <div style={{ width: '100%', maxWidth: '800px', margin: '24px auto' }}>
-        <div style={{ position: 'relative', border: '1px solid #000' }}>
-          <div style={{ 
-            position: 'absolute', 
-            top: '0', 
-            bottom: '0',
-            left: '12px',
-            display: 'flex',
-            alignItems: 'center',
-            pointerEvents: 'none'
-          }}>
-            🔍
-          </div>
-          <input
-            ref={searchInputRef}
-            type="text"
-            style={{ 
-              width: '100%',
-              padding: '8px 8px 8px 36px',
-              backgroundColor: 'transparent',
-              border: 'none',
-              color: 'black',
-              fontFamily: 'monospace',
-              fontSize: '14px',
-              outline: 'none'
-            }}
-            placeholder="query the brainrooms..."
-            onKeyDown={handleSearchKeyDown}
-          />
-        </div>
-      </div>
+<div style={{ width: '100%', maxWidth: '800px', margin: '24px auto' }}>
+  <button 
+    style={{ 
+      width: '100%',
+      padding: '8px',
+      backgroundColor: 'transparent',
+      border: '1px solid #000',
+      color: 'black',
+      fontFamily: 'monospace',
+      fontSize: '14px',
+      textAlign: 'left',
+      cursor: 'pointer'
+    }}
+    onClick={activateTerminal}
+  >
+    🔍 query the brainrooms...
+  </button>
+</div>
       
       {/* Special button */}
       <button 
