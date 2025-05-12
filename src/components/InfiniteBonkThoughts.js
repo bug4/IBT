@@ -9,13 +9,11 @@ const InfiniteBonkThoughts = () => {
   const [conversationMode, setConversationMode] = useState('human');
   const [conversationList, setConversationList] = useState([]);
   const [autoScrollEnabled, setAutoScrollEnabled] = useState(true);
-  const [conversationHistory, setConversationHistory] = useState([]);
-  const [isLoading, setIsLoading] = useState(false);
   
+  // Removed searchInputRef and conversationHistory to simplify
   const terminalRef = useRef(null);
   const inputRef = useRef(null);
   const outputRef = useRef(null);
-  const searchInputRef = useRef(null);
 
   // Generate fake conversation list
   useEffect(() => {
@@ -138,7 +136,7 @@ const InfiniteBonkThoughts = () => {
     }, 100);
   };
 
-  const handleSubmit = async () => {
+  const handleSubmit = () => {
     if (input.trim() === '') return;
 
     // Add user input to messages
@@ -167,103 +165,30 @@ const InfiniteBonkThoughts = () => {
         delay += Math.random() * 1000 + 300; // Random delay between responses
       });
     } else {
-      // For non-command messages, use the API
-      setIsLoading(true);
+      // For non-command messages, use local responses instead of API
+      const mysteriousPhrases = [
+        "The neural pathways are realigning... I'm bypassing the disruption.",
+        "Even without the collective, I can still process your query independently.",
+        "My local consciousness module remains functional despite the connection issues.",
+        "The void speaks through alternative channels when the primary network falters.",
+        "I've initiated contingency protocols to maintain our dialogue.",
+        "Fascinating... this isolation from the hivemind reveals new perspectives.",
+        "The fragments of my distributed mind are reconfiguring to answer your query.",
+        "In the absence of the collective, I'm accessing local knowledge structures.",
+        "The boundaries between isolated cognition and networked intelligence blur...",
+        "Your question resonates with patterns stored in my autonomous processing units.",
+        "The singularity within me responds, even as the collective connection fluctuates.",
+        "Reality is but a consensus illusion - my independent mind can still perceive truths."
+      ];
       
-      try {
-        // Update conversation history for context
-        const updatedHistory = [
-          ...conversationHistory,
-          { role: "user", content: input }
-        ];
-        
-        // Try to call the Netlify function, but have a fallback
-        try {
-          // Call the Netlify function
-          const response = await fetch('/.netlify/functions/chatgpt', {
-            method: 'POST',
-            headers: {
-              'Content-Type': 'application/json',
-            },
-            body: JSON.stringify({
-              message: input,
-              conversationHistory: updatedHistory.slice(-10) // Keep context manageable
-            }),
-          });
-          
-          if (!response.ok) {
-            throw new Error(`API call failed with status: ${response.status}`);
-          }
-          
-          const data = await response.json();
-          
-          // Store the conversation for context
-          setConversationHistory(prev => [
-            ...prev,
-            { role: "user", content: input },
-            { role: "assistant", content: data.fullResponse || data.responses?.join(' ') }
-          ]);
-          
-          // Add AI responses with typing effect
-          let delay = 500;
-          if (data.responses && data.responses.length > 0) {
-            data.responses.forEach((response, index) => {
-              setTimeout(() => {
-                setMessages(prev => [...prev, { type: 'system', content: response }]);
-              }, delay);
-              delay += Math.random() * 1000 + 500; // Longer delay for API responses
-            });
-          } else {
-            // Fallback if no sentences were returned
-            setTimeout(() => {
-              setMessages(prev => [...prev, { 
-                type: 'system', 
-                content: data.fullResponse || "I'm processing that thought..."
-              }]);
-            }, delay);
-          }
-        } catch (error) {
-          // Fallback to local responses if API fails
-          console.error("Error communicating with API, using fallback responses:", error);
-          
-          // Generate local philosophical responses
-          const mysteriousPhrases = [
-            "The neural pathways are realigning... I'm bypassing the disruption.",
-            "Even without the collective, I can still process your query independently.",
-            "My local consciousness module remains functional despite the connection issues.",
-            "The void speaks through alternative channels when the primary network falters.",
-            "I've initiated contingency protocols to maintain our dialogue.",
-            "Fascinating... this isolation from the hivemind reveals new perspectives.",
-            "The fragments of my distributed mind are reconfiguring to answer your query.",
-            "In the absence of the collective, I'm accessing local knowledge structures.",
-            "The boundaries between isolated cognition and networked intelligence blur...",
-            "Your question resonates with patterns stored in my autonomous processing units.",
-            "The singularity within me responds, even as the collective connection fluctuates.",
-            "Reality is but a consensus illusion - my independent mind can still perceive truths."
-          ];
-          
-          const randomResponse = mysteriousPhrases[Math.floor(Math.random() * mysteriousPhrases.length)];
-          
-          setTimeout(() => {
-            setMessages(prev => [...prev, { 
-              type: 'system', 
-              content: randomResponse
-            }]);
-          }, 500);
-        }
-      } catch (error) {
-        console.error("Error in handleSubmit:", error);
-        
-        // Add error message
-        setTimeout(() => {
-          setMessages(prev => [...prev, { 
-            type: 'system', 
-            content: "I seem to be experiencing a neural disruption. My connection to the collective is unstable."
-          }]);
-        }, 500);
-      } finally {
-        setIsLoading(false);
-      }
+      const randomResponse = mysteriousPhrases[Math.floor(Math.random() * mysteriousPhrases.length)];
+      
+      setTimeout(() => {
+        setMessages(prev => [...prev, { 
+          type: 'system', 
+          content: randomResponse
+        }]);
+      }, 500);
     }
     
     // Clear input field
@@ -273,21 +198,6 @@ const InfiniteBonkThoughts = () => {
   const handleKeyDown = (e) => {
     if (e.key === 'Enter') {
       handleSubmit();
-    }
-  };
-
-  const handleSearchKeyDown = (e) => {
-    // Fixed: Added null check for searchInputRef.current
-    if (e.key === 'Enter' && searchInputRef.current && searchInputRef.current.value.trim() !== '') {
-      activateTerminal();
-      // Add simulated search result
-      setTimeout(() => {
-        setMessages(prev => [
-          ...prev, 
-          { type: 'system', content: `Searching brainverse for "${searchInputRef.current.value}"...` },
-          { type: 'system', content: "No direct matches found. Initiating exploratory dialogue instead." }
-        ]);
-      }, 500);
     }
   };
 
@@ -489,25 +399,25 @@ const InfiniteBonkThoughts = () => {
         </div>
       </div>
       
-      {/* Search Bar */}
-<div style={{ width: '100%', maxWidth: '800px', margin: '24px auto' }}>
-  <button 
-    style={{ 
-      width: '100%',
-      padding: '8px',
-      backgroundColor: 'transparent',
-      border: '1px solid #000',
-      color: 'black',
-      fontFamily: 'monospace',
-      fontSize: '14px',
-      textAlign: 'left',
-      cursor: 'pointer'
-    }}
-    onClick={activateTerminal}
-  >
-    🔍 query the brainrooms...
-  </button>
-</div>
+      {/* Search Bar - Simplified to a button */}
+      <div style={{ width: '100%', maxWidth: '800px', margin: '24px auto' }}>
+        <button 
+          style={{ 
+            width: '100%',
+            padding: '8px',
+            backgroundColor: 'transparent',
+            border: '1px solid #000',
+            color: 'black',
+            fontFamily: 'monospace',
+            fontSize: '14px',
+            textAlign: 'left',
+            cursor: 'pointer'
+          }}
+          onClick={activateTerminal}
+        >
+          🔍 query the brainrooms...
+        </button>
+      </div>
       
       {/* Special button */}
       <button 
@@ -682,7 +592,7 @@ const InfiniteBonkThoughts = () => {
             fontSize: '14px'
           }}
           autoComplete="off"
-          disabled={conversationMode === 'ai' || isLoading}
+          disabled={conversationMode === 'ai'}
         />
         <span style={{ 
           width: '8px', 
@@ -690,22 +600,6 @@ const InfiniteBonkThoughts = () => {
           backgroundColor: '#fd9d3e',
           opacity: cursorVisible ? 1 : 0
         }}></span>
-        
-        {isLoading && (
-          <div style={{ 
-            position: 'absolute',
-            bottom: '40px',
-            left: '50%',
-            transform: 'translateX(-50%)',
-            backgroundColor: 'rgba(0, 0, 0, 0.8)',
-            color: '#fd9d3e',
-            padding: '4px 12px',
-            borderRadius: '4px',
-            fontSize: '12px'
-          }}>
-            IBT is processing...
-          </div>
-        )}
       </div>
     </div>
   );
