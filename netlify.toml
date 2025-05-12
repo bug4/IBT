@@ -1,15 +1,12 @@
 [build]
-  command = "npm run build"
+  command = "CI=false npm run build"
   publish = "build"
   functions = "netlify/functions"
 
-[dev]
-  command = "npm start"
-  functions = "netlify/functions"
-  publish = "public"
-  port = 8888
-  targetPort = 3000
-  autoLaunch = true
+[[redirects]]
+  from = "/.netlify/functions/*"
+  to = "/.netlify/functions/:splat"
+  status = 200
 
 [[redirects]]
   from = "/*"
